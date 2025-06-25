@@ -1,0 +1,4 @@
+github.com/approvals/go-approval-tests v1.5.1 h1:dNoQ5/Qj6E4TAJGnk5h6VOX/t+EMWate4ek/65IgdbQ=
+github.com/approvals/go-approval-tests v1.5.1/go.mod h1:i7AlHlLqLyxTby+MnSFgxkObjFlsywI46fnOitjMBiU=
+github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
+github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
