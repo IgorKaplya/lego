@@ -5,5 +5,9 @@
   "go.testExplorer.showOutput": false,
   "workbench.view.showQuietly": {
     "workbench.panel.output": false
+  },
+  "github.copilot.inlineSuggest.enable": false,
+  "github.copilot.enable": {
+    "*": false
   }
 }
