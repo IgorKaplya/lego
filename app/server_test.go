@@ -22,12 +22,12 @@ func (s *StubPlayerStore) RecordWin(name string) {
 }
 
 func TestGETPlayers(t *testing.T) {
-	server := &PlayerServer{store: &StubPlayerStore{
+	server := NewPlayerServer(&StubPlayerStore{
 		scores: map[string]int{
 			"Pepper": 20,
 			"Floyd":  10,
 		},
-	}}
+	})
 
 	t.Run("returns Pepper's score", func(t *testing.T) {
 		request := newGetScoreRequest("Pepper")
@@ -64,7 +64,7 @@ func TestStoreWins(t *testing.T) {
 		scores:   map[string]int{},
 		winCalls: []string{},
 	}
-	var server = &PlayerServer{store: store}
+	var server = NewPlayerServer(store)
 
 	t.Run("returns accepted on POST", func(t *testing.T) {
 		var request = newPostWinRequest("Pepper")

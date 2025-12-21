@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type PlayerStore interface {
@@ -13,10 +12,21 @@ type PlayerStore interface {
 
 type PlayerServer struct {
 	store PlayerStore
+	http.Handler
 }
 
-func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/players/")
+func NewPlayerServer(store PlayerStore) *PlayerServer {
+	result := &PlayerServer{}
+	result.store = store
+	router := http.NewServeMux()
+	router.Handle("/players/{name}", http.HandlerFunc(result.playerHandle))
+	result.Handler = router
+
+	return result
+}
+
+func (p *PlayerServer) playerHandle(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
 	switch r.Method {
 	case http.MethodGet:
 		p.processScore(w, name)
