@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -10,6 +11,11 @@ import (
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
+	league   []Player
+}
+
+func (s *StubPlayerStore) GetLeague() (result []Player) {
+	return s.league
 }
 
 func (s *StubPlayerStore) GetPlayerScore(name string) int {
@@ -75,6 +81,59 @@ func TestStoreWins(t *testing.T) {
 		assertStatusCode(t, respone, http.StatusAccepted)
 		assertWinCalls(t, store.winCalls, []string{"Pepper"})
 	})
+}
+
+func TestLeague(t *testing.T) {
+	want := []Player{
+		{Name: "Cleo", Wins: 32},
+		{Name: "Chris", Wins: 20},
+		{Name: "Tiest", Wins: 14},
+	}
+	var server = NewPlayerServer(&StubPlayerStore{league: want})
+	var response = httptest.NewRecorder()
+	var request = newGetLeagueRequest()
+
+	server.ServeHTTP(response, request)
+
+	got, err := getLeagueFromResponse(response)
+
+	assertNoError(t, err)
+	assertPlayers(t, got, want)
+	assertStatusCode(t, response, http.StatusOK)
+	assertContentIsJson(t, response)
+}
+
+func getLeagueFromResponse(response *httptest.ResponseRecorder) (league []Player, err error) {
+	err = json.NewDecoder(response.Body).Decode(&league)
+	return
+}
+
+func assertContentIsJson(t testing.TB, response *httptest.ResponseRecorder) {
+	got := response.Header().Get("content-type")
+	want := "application/json"
+
+	if got != want {
+		t.Fatalf("content type got %q, want %q", got, want)
+	}
+}
+
+func assertPlayers(t testing.TB, got []Player, want []Player) {
+	t.Helper()
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("league got %v want %v", got, want)
+	}
+}
+
+func assertNoError(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("did not expect an error: %#v", err)
+	}
+}
+
+func newGetLeagueRequest() *http.Request {
+	return httptest.NewRequest(http.MethodGet, "/league", nil)
 }
 
 func newPostWinRequest(name string) *http.Request {

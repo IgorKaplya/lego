@@ -1,13 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 )
 
+type Player struct {
+	Name string
+	Wins int
+}
+
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
+	GetLeague() []Player
 }
 
 type PlayerServer struct {
@@ -20,6 +27,8 @@ func NewPlayerServer(store PlayerStore) *PlayerServer {
 	result.store = store
 	router := http.NewServeMux()
 	router.Handle("/players/{name}", http.HandlerFunc(result.playerHandle))
+	router.Handle("/league", http.HandlerFunc(result.leagueHandle))
+
 	result.Handler = router
 
 	return result
@@ -33,6 +42,12 @@ func (p *PlayerServer) playerHandle(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		p.processWin(w, name)
 	}
+}
+
+func (p *PlayerServer) leagueHandle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	league := p.store.GetLeague()
+	json.NewEncoder(w).Encode(&league)
 }
 
 func (p *PlayerServer) processScore(w http.ResponseWriter, name string) {
