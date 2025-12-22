@@ -3,12 +3,19 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
 )
 
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
-	server := NewPlayerServer(NewInMemoryPlayerStore())
+	database, cleanupDatabase := createTempDatabase(t)
+	defer cleanupDatabase()
+
+	store, err := NewFileSystemPlayerStore(database)
+	assertNoError(t, err)
+
+	server := NewPlayerServer(store)
 	player := "Pepper"
 
 	wins := 3
@@ -32,9 +39,21 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
 		assertStatusCode(t, response, http.StatusOK)
 
-		want := []Player{{Name: player, Wins: wins}}
+		want := League{{Name: player, Wins: wins}}
 		got, _ := getLeagueFromResponse(response)
 		assertPlayers(t, got, want)
 	})
 
+}
+
+func createTempDatabase(t testing.TB) (FileDatabase, func()) {
+	file, errCreate := os.CreateTemp("", "db")
+	assertNoError(t, errCreate)
+
+	file.Write([]byte("[]"))
+
+	return file, func() {
+		assertNoError(t, file.Close())
+		assertNoError(t, os.Remove(file.Name()))
+	}
 }

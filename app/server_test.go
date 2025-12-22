@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -11,10 +10,10 @@ import (
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
-	league   []Player
+	league   League
 }
 
-func (s *StubPlayerStore) GetLeague() (result []Player) {
+func (s *StubPlayerStore) GetLeague() (result League) {
 	return s.league
 }
 
@@ -84,7 +83,7 @@ func TestStoreWins(t *testing.T) {
 }
 
 func TestLeague(t *testing.T) {
-	want := []Player{
+	want := League{
 		{Name: "Cleo", Wins: 32},
 		{Name: "Chris", Wins: 20},
 		{Name: "Tiest", Wins: 14},
@@ -103,9 +102,16 @@ func TestLeague(t *testing.T) {
 	assertContentIsJson(t, response)
 }
 
-func getLeagueFromResponse(response *httptest.ResponseRecorder) (league []Player, err error) {
-	err = json.NewDecoder(response.Body).Decode(&league)
+func getLeagueFromResponse(response *httptest.ResponseRecorder) (league League, err error) {
+	league, err = NewLeague(response.Body)
 	return
+}
+
+func assertScore(t testing.TB, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Fatalf("score got %d, want %d", got, want)
+	}
 }
 
 func assertContentIsJson(t testing.TB, response *httptest.ResponseRecorder) {
@@ -117,7 +123,7 @@ func assertContentIsJson(t testing.TB, response *httptest.ResponseRecorder) {
 	}
 }
 
-func assertPlayers(t testing.TB, got []Player, want []Player) {
+func assertPlayers(t testing.TB, got League, want League) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {
@@ -125,7 +131,7 @@ func assertPlayers(t testing.TB, got []Player, want []Player) {
 	}
 }
 
-func assertNoError(t *testing.T, err error) {
+func assertNoError(t testing.TB, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatalf("did not expect an error: %#v", err)

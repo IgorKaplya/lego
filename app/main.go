@@ -3,9 +3,23 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
+const dbFileName = "game.db.json"
+
 func main() {
-	server := NewPlayerServer(NewInMemoryPlayerStore())
+	file, err := os.OpenFile(dbFileName, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatalf("problem opening file %q %v", dbFileName, err)
+	}
+
+	store, err := NewFileSystemPlayerStore(file)
+	if err != nil {
+		log.Fatalf("problem creating store, %v", err)
+	}
+
+	server := NewPlayerServer(store)
+
 	log.Fatal(http.ListenAndServe(":5000", server))
 }
