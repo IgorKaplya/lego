@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/IgorKaplya/lego/app"
 )
 
 const dbFileName = "game.db.json"
@@ -14,12 +16,12 @@ func main() {
 		log.Fatalf("problem opening file %q %v", dbFileName, err)
 	}
 
-	store, err := NewFileSystemPlayerStore(file)
+	store, err := app.NewFileSystemPlayerStore(file)
 	if err != nil {
 		log.Fatalf("problem creating store, %v", err)
 	}
 
-	server := NewPlayerServer(store)
+	server := app.NewPlayerServer(store)
 
 	log.Fatal(http.ListenAndServe(":5000", server))
 }
