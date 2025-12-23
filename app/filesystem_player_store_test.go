@@ -43,7 +43,7 @@ func TestFileSystemStore(t *testing.T) {
 		{"Name": "Cleo", "Wins": 10},
 		{"Name": "Chris", "Wins": 33}
 	]`))
-	assertNoError(t, err)
+	AssertNoError(t, err)
 
 	t.Run("league from reader", func(t *testing.T) {
 
@@ -54,26 +54,26 @@ func TestFileSystemStore(t *testing.T) {
 			{Name: "Chris", Wins: 33},
 			{Name: "Cleo", Wins: 10},
 		}
-		assertPlayers(t, got, want)
+		AssertPlayers(t, got, want)
 	})
 
 	t.Run("get player score", func(t *testing.T) {
 		got := store.GetPlayerScore("Chris")
 		want := 33
-		assertScore(t, got, want)
+		AssertScore(t, got, want)
 	})
 
 	t.Run("store wins for existing players", func(t *testing.T) {
 		store.RecordWin("Chris")
 		got := store.GetPlayerScore("Chris")
 		want := 34
-		assertScore(t, got, want)
+		AssertScore(t, got, want)
 	})
 
 	t.Run("store wins for new players", func(t *testing.T) {
 		store.RecordWin("Pepper")
 		got := store.GetPlayerScore("Pepper")
 		want := 1
-		assertScore(t, got, want)
+		AssertScore(t, got, want)
 	})
 }

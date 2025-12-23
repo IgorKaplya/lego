@@ -32,3 +32,5 @@ go.work.sum
 # .vscode/
 app/cmd/webserver/webserver
 app/cmd/webserver/game.db.json
+app/cmd/cli/cli
+app/cmd/cli/game.db.json

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 )
 
@@ -60,4 +61,17 @@ func NewFileSystemPlayerStore(database FileDatabase) (*FileSystemPlayerStore, er
 		league:   league,
 		encoder:  encoder,
 	}, nil
+}
+
+func FileSystemPlayerStoreFromFile(file string) (*FileSystemPlayerStore, error, func()) {
+	db, err := os.OpenFile(file, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("problem opening %q, %v", file, err), nil
+	}
+
+	store, err := NewFileSystemPlayerStore(db)
+
+	return store, err, func() {
+		db.Close()
+	}
 }

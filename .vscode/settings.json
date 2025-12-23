@@ -1,6 +1,6 @@
 {
   "testing.automaticallyOpenPeekView": "never",
-  "testing.automaticallyOpenTestResults": "openOnTestFailure",
+  "testing.automaticallyOpenTestResults": "neverOpen",
   "testing.automaticallyOpenPeekViewDuringAutoRun": false,
   "go.testExplorer.showOutput": false,
   "workbench.view.showQuietly": {

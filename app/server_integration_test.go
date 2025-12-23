@@ -13,7 +13,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 	defer cleanupDatabase()
 
 	store, err := NewFileSystemPlayerStore(database)
-	assertNoError(t, err)
+	AssertNoError(t, err)
 
 	server := NewPlayerServer(store)
 	player := "Pepper"
@@ -28,8 +28,8 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, newGetScoreRequest(player))
 
-		assertStatusCode(t, response, http.StatusOK)
-		assertResponseBody(t, response, strconv.Itoa(wins))
+		AssertStatusCode(t, response, http.StatusOK)
+		AssertResponseBody(t, response, strconv.Itoa(wins))
 	})
 
 	t.Run("get league", func(t *testing.T) {
@@ -37,23 +37,23 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
 		server.ServeHTTP(response, newGetLeagueRequest())
 
-		assertStatusCode(t, response, http.StatusOK)
+		AssertStatusCode(t, response, http.StatusOK)
 
 		want := League{{Name: player, Wins: wins}}
-		got, _ := getLeagueFromResponse(response)
-		assertPlayers(t, got, want)
+		got, _ := GetLeagueFromResponse(response)
+		AssertPlayers(t, got, want)
 	})
 
 }
 
 func createTempDatabase(t testing.TB) (FileDatabase, func()) {
 	file, errCreate := os.CreateTemp("", "db")
-	assertNoError(t, errCreate)
+	AssertNoError(t, errCreate)
 
 	file.Write([]byte("[]"))
 
 	return file, func() {
-		assertNoError(t, file.Close())
-		assertNoError(t, os.Remove(file.Name()))
+		AssertNoError(t, file.Close())
+		AssertNoError(t, os.Remove(file.Name()))
 	}
 }
