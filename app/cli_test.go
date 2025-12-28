@@ -1,30 +1,95 @@
 package app_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/IgorKaplya/lego/app"
 )
 
-func TestCli(t *testing.T) {
-	t.Run("chris wins", func(t *testing.T) {
-		in := strings.NewReader("Chris wins\n")
-		store := &app.StubPlayerStore{}
-		cli := app.NewCli(store, in)
+type GameSpy struct {
+	started      bool
+	startedWith  int
+	finishedWith string
+}
+
+// Finish implements [app.GameIntf].
+func (g *GameSpy) Finish(winner string) {
+	g.finishedWith = winner
+}
+
+// Start implements [app.GameIntf].
+func (g *GameSpy) Start(numberOfPlayers int) {
+	g.startedWith = numberOfPlayers
+	g.started = true
+}
+
+func TestPlayPoker(t *testing.T) {
+
+	t.Run("plays", func(t *testing.T) {
+		in := strings.NewReader("5\nbobo wins")
+		out := new(bytes.Buffer)
+		game := &GameSpy{}
+		cli := app.NewCli(in, out, game)
 
 		cli.PlayPoker()
 
-		app.AssertWinCalls(t, store.WinCalls, []string{"Chris"})
+		assertPromptText(t, out.String(), app.PlayerPrompt)
+		assertNumberPlayers(t, game.startedWith, 5)
+		assertWinner(t, game.finishedWith, "bobo")
 	})
 
-	t.Run("cleo wins", func(t *testing.T) {
-		in := strings.NewReader("Cleo wins\n")
-		store := &app.StubPlayerStore{}
-		cli := app.NewCli(store, in)
+	t.Run("errors on NaN for user num", func(t *testing.T) {
+		in := strings.NewReader("Woop\n")
+		out := new(bytes.Buffer)
+		game := &GameSpy{}
+		cli := app.NewCli(in, out, game)
 
 		cli.PlayPoker()
 
-		app.AssertWinCalls(t, store.WinCalls, []string{"Cleo"})
+		assertGameStarted(t, game.started, false)
+		assertPromptText(t, out.String(), app.PlayerPrompt, app.NaNErrorMessage)
 	})
+
+	t.Run("errors on wrong win pattern", func(t *testing.T) {
+		in := strings.NewReader("3\nlabadabadab dab")
+		out := new(bytes.Buffer)
+		game := &GameSpy{}
+		cli := app.NewCli(in, out, game)
+
+		cli.PlayPoker()
+
+		assertPromptText(t, out.String(), app.PlayerPrompt, app.WrongWinPatternMessage)
+	})
+}
+
+func assertWinner(t testing.TB, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("Winner got %q, want %q", got, want)
+	}
+}
+
+func assertGameStarted(t testing.TB, got, want bool) {
+	t.Helper()
+	if got != want {
+		t.Fatalf("game started got %v, want %v", got, want)
+	}
+}
+
+func assertNumberPlayers(t testing.TB, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("Playert number got %d, want %d", got, want)
+	}
+}
+
+func assertPromptText(t testing.TB, got string, wantMessages ...string) {
+	t.Helper()
+	want := strings.Join(wantMessages, "")
+
+	if got != want {
+		t.Errorf("Prompt got %q, want %q", got, want)
+	}
 }
