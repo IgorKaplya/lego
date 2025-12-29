@@ -18,7 +18,7 @@ func main() {
 	}
 	defer cleanup()
 
-	game := app.NewGame(app.BlindAlerterFun(app.StdOutAlerter), store)
+	game := app.NewGame(app.BlindAlerterFun(app.Alerter), store)
 	cli := app.NewCli(os.Stdin, os.Stdout, game)
 	cli.PlayPoker()
 }

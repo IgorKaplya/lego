@@ -8,13 +8,17 @@ import (
 )
 
 func main() {
-	store, err, cleanup := app.FileSystemPlayerStoreFromFile("game.db.json")
-	if err != nil {
-		log.Fatalf("problem creating player store, %v", err)
+	store, errDb, cleanup := app.FileSystemPlayerStoreFromFile("game.db.json")
+	if errDb != nil {
+		log.Fatalf("problem creating player store, %v", errDb)
 	}
 	defer cleanup()
 
-	server := app.NewPlayerServer(store)
+	game := app.NewGame(app.BlindAlerterFun(app.Alerter), store)
+	server, errServer := app.NewPlayerServer(store, game)
+	if errServer != nil {
+		log.Fatalf("problem creating server, %v", errServer)
+	}
 
 	log.Fatal(http.ListenAndServe(":5000", server))
 }

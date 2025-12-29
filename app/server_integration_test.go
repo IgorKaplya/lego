@@ -1,4 +1,4 @@
-package app
+package app_test
 
 import (
 	"net/http"
@@ -6,16 +6,19 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/IgorKaplya/lego/app"
 )
 
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 	database, cleanupDatabase := createTempDatabase(t)
 	defer cleanupDatabase()
 
-	store, err := NewFileSystemPlayerStore(database)
-	AssertNoError(t, err)
+	store, err := app.NewFileSystemPlayerStore(database)
+	assertNoError(t, err)
 
-	server := NewPlayerServer(store)
+	game := app.NewGame(app.BlindAlerterFun(app.Alerter), store)
+	server := mustMakePlayerServer(t, store, game)
 	player := "Pepper"
 
 	wins := 3
@@ -28,8 +31,8 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, newGetScoreRequest(player))
 
-		AssertStatusCode(t, response, http.StatusOK)
-		AssertResponseBody(t, response, strconv.Itoa(wins))
+		assertStatusCode(t, response, http.StatusOK)
+		assertResponseBody(t, response, strconv.Itoa(wins))
 	})
 
 	t.Run("get league", func(t *testing.T) {
@@ -37,23 +40,23 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
 		server.ServeHTTP(response, newGetLeagueRequest())
 
-		AssertStatusCode(t, response, http.StatusOK)
+		assertStatusCode(t, response, http.StatusOK)
 
-		want := League{{Name: player, Wins: wins}}
-		got, _ := GetLeagueFromResponse(response)
-		AssertPlayers(t, got, want)
+		want := app.League{{Name: player, Wins: wins}}
+		got, _ := getLeagueFromResponse(response)
+		assertPlayers(t, got, want)
 	})
 
 }
 
-func createTempDatabase(t testing.TB) (FileDatabase, func()) {
+func createTempDatabase(t testing.TB) (app.FileDatabase, func()) {
 	file, errCreate := os.CreateTemp("", "db")
-	AssertNoError(t, errCreate)
+	assertNoError(t, errCreate)
 
 	file.Write([]byte("[]"))
 
 	return file, func() {
-		AssertNoError(t, file.Close())
-		AssertNoError(t, os.Remove(file.Name()))
+		assertNoError(t, file.Close())
+		assertNoError(t, os.Remove(file.Name()))
 	}
 }

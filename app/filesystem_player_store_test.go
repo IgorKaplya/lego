@@ -1,8 +1,10 @@
-package app
+package app_test
 
 import (
 	"bytes"
 	"testing"
+
+	"github.com/IgorKaplya/lego/app"
 )
 
 type TestDatabase struct {
@@ -34,27 +36,27 @@ func (t *TestDatabase) Write(p []byte) (n int, err error) {
 	return
 }
 
-func newDatabase(data string) FileDatabase {
+func newDatabase(data string) app.FileDatabase {
 	return &TestDatabase{data: data}
 }
 
 func TestFileSystemStore(t *testing.T) {
-	store, err := NewFileSystemPlayerStore(newDatabase(`[
+	store, err := app.NewFileSystemPlayerStore(newDatabase(`[
 		{"Name": "Cleo", "Wins": 10},
 		{"Name": "Chris", "Wins": 33}
 	]`))
-	AssertNoError(t, err)
+	assertNoError(t, err)
 
 	t.Run("league from reader", func(t *testing.T) {
 
 		got := store.GetLeague()
 		got = store.GetLeague()
 
-		want := League{
+		want := app.League{
 			{Name: "Chris", Wins: 33},
 			{Name: "Cleo", Wins: 10},
 		}
-		AssertPlayers(t, got, want)
+		assertPlayers(t, got, want)
 	})
 
 	t.Run("get player score", func(t *testing.T) {

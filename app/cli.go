@@ -35,7 +35,7 @@ func (c *Cli) PlayPoker() {
 		return
 	}
 
-	c.game.Start(numberOfPlayers)
+	c.game.Start(numberOfPlayers, c.out)
 
 	c.scanner.Scan()
 	input := c.scanner.Text()

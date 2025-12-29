@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ type SpyBlindAlerter struct {
 }
 
 // ScheduleAlertAt implements [app.BlindAlerter].
-func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
+func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int, to io.Writer) {
 	s.alerts = append(s.alerts, struct {
 		duration time.Duration
 		amount   int
@@ -34,11 +35,11 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(duration time.Duration, amount int) {
 }
 
 func TestStart(t *testing.T) {
-	dummyStore := new(app.StubPlayerStore)
+	dummyStore := new(stubPlayerStore)
 	alerter := new(SpyBlindAlerter)
 
 	game := app.NewGame(alerter, dummyStore)
-	game.Start(7)
+	game.Start(7, io.Discard)
 
 	wantAlerts := []spyAlert{
 		{duration: 0 * time.Minute, amount: 100},
@@ -58,13 +59,13 @@ func TestStart(t *testing.T) {
 }
 
 func TestFinisg(t *testing.T) {
-	store := new(app.StubPlayerStore)
+	store := new(stubPlayerStore)
 	dummyAlerter := new(SpyBlindAlerter)
 	game := app.NewGame(dummyAlerter, store)
 
 	game.Finish("Maik")
 
-	app.AssertWinCalls(t, store.WinCalls, []string{"Maik"})
+	assertWinCalls(t, store.WinCalls, []string{"Maik"})
 }
 
 func assertAlerts(t *testing.T, gotAlerts []spyAlert, wantAlerts []spyAlert) {

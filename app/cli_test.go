@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"bytes"
+	"io"
 	"strings"
 	"testing"
 
@@ -12,6 +13,7 @@ type GameSpy struct {
 	started      bool
 	startedWith  int
 	finishedWith string
+	blindAlert   []byte
 }
 
 // Finish implements [app.GameIntf].
@@ -20,9 +22,10 @@ func (g *GameSpy) Finish(winner string) {
 }
 
 // Start implements [app.GameIntf].
-func (g *GameSpy) Start(numberOfPlayers int) {
+func (g *GameSpy) Start(numberOfPlayers int, to io.Writer) {
 	g.startedWith = numberOfPlayers
 	g.started = true
+	to.Write(g.blindAlert)
 }
 
 func TestPlayPoker(t *testing.T) {
@@ -36,8 +39,8 @@ func TestPlayPoker(t *testing.T) {
 		cli.PlayPoker()
 
 		assertPromptText(t, out.String(), app.PlayerPrompt)
-		assertNumberPlayers(t, game.startedWith, 5)
-		assertWinner(t, game.finishedWith, "bobo")
+		assertGameStartedWith(t, game.startedWith, 5)
+		assertGameFinishedWith(t, game.finishedWith, "bobo")
 	})
 
 	t.Run("errors on NaN for user num", func(t *testing.T) {
@@ -64,7 +67,7 @@ func TestPlayPoker(t *testing.T) {
 	})
 }
 
-func assertWinner(t testing.TB, got, want string) {
+func assertGameFinishedWith(t testing.TB, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("Winner got %q, want %q", got, want)
@@ -78,7 +81,7 @@ func assertGameStarted(t testing.TB, got, want bool) {
 	}
 }
 
-func assertNumberPlayers(t testing.TB, got, want int) {
+func assertGameStartedWith(t testing.TB, got, want int) {
 	t.Helper()
 	if got != want {
 		t.Errorf("Playert number got %d, want %d", got, want)
